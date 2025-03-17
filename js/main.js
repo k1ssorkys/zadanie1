@@ -48,7 +48,7 @@ Vue.component('product', {
                 </div>
                 <li v-for="size in sizes">{{size}}</li>
                 <div class="cart">
-                    <p>Cart({{ cart }})</p>
+                    
                     <button v-on:click="addToCart"  :class="{ disabledButton: !inStock }">Add to cart</button>
                     <button v-on:click="ubratOnCart">Ubrat from cart</button>
                 </div>
@@ -84,25 +84,24 @@ Vue.component('product', {
                 }
             ],
             sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
-            cart: 0,
+
         }
     },
 
     methods: {
         addToCart() {
-            this.cart += 1
+            this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
+
         },
+
+
         updateProduct(index) {
             this.selectedVariant = index;
 
         },
 
         ubratOnCart() {
-            if (this.cart > 0) {
-                this.cart -= 1;
-            } else {
-                alert("Бро, корзина и так пуста куда минусуешь");
-            }
+            this.$emit('del-to-cart', this.variants[this.selectedVariant].variantId);
         },
     },
     computed: {
@@ -136,7 +135,18 @@ let app = new Vue({
     el: '#app',
     data: {
         premium: true,
+        cart: []
+
+    },
+    methods: {
+        updateCart(id) {
+            this.cart.push(id);
+        },
+        delCart(id) {
+            this.cart.pop(id);
+        }
 
     }
+
 
 })
