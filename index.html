@@ -12,36 +12,7 @@
 </head>
 <body>
 <div id="app">
-    <div class="product">
-        <div class="product-image">
-            <img alt="#" :src="image" :alt="altText"/>
-        </div>
-        <div class="product-info">
-            <h1>{{ title }}</h1>
-            <p>{{description}}</p>
-            <a href="https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks">{{link}}</a>
-            <p v-if="inStock">In Stock</p>
-            <p :class="{ line: !inStock }" >Out of Stock</p>
-            <span v-if="onSale">On Sale</span>
-            <div v-for="variant in variants" :key="variant.variantId"
-                 class="color-box"
-                 v-for="variant in variants"
-                 :key="variant.variantId"
-                 :style="{ backgroundColor:variant.variantColor }"
-                 @mouseover="updateProduct(variant.variantImage)">
-
-
-
-            </div>
-            <li v-for="size in sizes">{{size}}</li>
-            <div class="cart">
-                <p>Cart({{ cart }})</p>
-                <button v-on:click="addToCart"  :class="{ disabledButton: !inStock }">Add to cart</button>
-                <button v-on:click="ubratOnCart">Ubrat from cart</button>
-            </div>
-            <span>{{ sale }}</span>
-        </div>
-    </div>
+    <product :premium="premium" ></product>
 </div>
 </body>
 </html>
