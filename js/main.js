@@ -1,20 +1,5 @@
-// Создаем экземпляр Vue, который будет использоваться как шина событий для обмена данными между компонентами
-
-//реактивность-это способ фреймворка отслеживать изменения в данных и автоматически обновлять интерфейс.
-//eventBus-ипользуется для передачи событий между компонентами.
-//event name-это имя события а payload это данные которые вы хотите передать родительскому компоненту
-//v-if-специальные атрибуты которые добавляют реактивность и управление отображения
-//Vue component используется для регистрации нового компонента
-//teamplate определяет html шаблон для компонента
-//дата функция возвращающая объект с данными компонента
-//метод объект содержащий функции
-
-
-
-
-
-// Создаем экземпляр Vue, который будет использоваться как шина событий для обмена данными между компонентами
 let eventBus = new Vue();
+
 
 // Компонент для отображения вкладок с информацией о продукте
 Vue.component('product-tabs', {
@@ -36,15 +21,15 @@ Vue.component('product-tabs', {
             <div>   
                 <ul>
                     <span class="tab"
-                          :class="{ activeTab: selectedTab === tab }"
-                          v-for="(tab, index) in tabs"
-                          @click="selectedTab = tab"
+                          :class="{ activeTab: selectedTab === tab }" // Применяем класс activeTab к выбранной вкладке
+                          v-for="(tab, index) in tabs" // Перебираем массив вкладок
+                          @click="selectedTab = tab" // Устанавливаем выбранную вкладку при клике
                     >{{ tab }}</span>
                 </ul>
-                <div v-show="selectedTab === 'Reviews'">
+                <div v-show="selectedTab === 'Reviews'"> // Показываем отзывы, если выбрана вкладка "Reviews"
                     <p v-if="!reviews.length">There are no reviews yet.</p>
                     <ul>
-                        <li v-for="review in reviews" :key="review.name">
+                        <li v-for="review in reviews" :key="review.name"> // Перебираем отзывы
                             <p>{{ review.name }}</p>
                             <p>Rating: {{ review.rating }}</p>
                             <p>{{ review.review }}</p>
@@ -52,13 +37,13 @@ Vue.component('product-tabs', {
                         </li>
                     </ul>
                 </div>
-                <div v-show="selectedTab === 'Make a Review'">
+                <div v-show="selectedTab === 'Make a Review'"> // Показываем форму отзыва, если выбрана вкладка "Make a Review"
                     <product-review></product-review>
                 </div>
-                <div v-show="selectedTab === 'Shipping'">
+                <div v-show="selectedTab === 'Shipping'"> // Показываем стоимость доставки, если выбрана вкладка "Shipping"
                     <p>Shipping Cost: {{ shippingCost }}</p>
                 </div>
-                <div v-show="selectedTab === 'Details'">
+                <div v-show="selectedTab === 'Details'"> // Показываем детали продукта, если выбрана вкладка "Details"
                     <h2>Details:</h2>
                     <ul>
                         <li v-for="detail in details" :key="detail">{{ detail }}</li>
@@ -77,8 +62,8 @@ Vue.component('product-tabs', {
 // Компонент для формы отзыва о продукте
 Vue.component('product-review', {
     template: `
-            <form class="review-form" @submit.prevent="onSubmit">
-                <p v-if="errors.length">
+            <form class="review-form" @submit.prevent="onSubmit"> // Предотвращаем стандартное поведение формы
+                <p v-if="errors.length"> // Показываем ошибки, если они есть
                     <b>Please correct the following error(s):</b>
                     <ul>
                         <li v-for="error in errors" :key="error">{{ error }}</li>
@@ -86,15 +71,15 @@ Vue.component('product-review', {
                 </p>
                 <p>
                     <label for="name">Name:</label>
-                    <input id="name" v-model="name" placeholder="name">
+                    <input id="name" v-model="name" placeholder="name"> // Двусторонняя привязка к полю имени
                 </p>
                 <p>
                     <label for="review">Review:</label>
-                    <textarea id="review" v-model="review"></textarea>
+                    <textarea id="review" v-model="review"></textarea> // Двусторонняя привязка к полю отзыва
                 </p>
                 <p>
                     <label for="rating">Rating:</label>
-                    <select id="rating" v-model.number="rating">
+                    <select id="rating" v-model.number="rating"> // Двусторонняя привязка к полю рейтинга
                         <option disabled value="">Please select one</option>
                         <option>1</option>
                         <option>2</option>
@@ -106,14 +91,14 @@ Vue.component('product-review', {
                 <p>
                     <label>Would you recommend this product?</label>
                     <label>
-                        <input type="radio" value="yes" v-model="recommendation"> Yes
+                        <input type="radio" value="yes" v-model="recommendation"> Yes // Двусторонняя привязка к полю рекомендации
                     </label>
                     <label>
                         <input type="radio" value="no" v-model="recommendation"> No
                     </label>
                 </p>
                 <p>
-                    <input type="submit" value="Submit"> 
+                    <input type="submit" value="Submit"> // Кнопка отправки формы
                 </p>
             </form>
             `,
@@ -147,7 +132,7 @@ Vue.component('product-review', {
                     !this.review && "Review required.",
                     !this.rating && "Rating required.",
                     !this.recommendation && "Recommendation required."
-                ].filter(Boolean));
+                ].filter(Boolean)); // Фильтруем пустые значения
             }
         },
         resetForm() {
@@ -164,7 +149,7 @@ Vue.component('product-review', {
 Vue.component('product-details', {
     props: {
         details: {
-            type: Array,
+            type : Array,
             required: true
         }
     },
@@ -172,7 +157,7 @@ Vue.component('product-details', {
             <div>
                 <h2>Details:</h2>
                 <ul>
-                    <li v-for="detail in details" :key="detail">{{ detail }}</li>
+                    <li v-for="detail in details" :key="detail">{{ detail }}</li> // Перебираем детали продукта
                 </ul>
             </div>
             `
@@ -189,32 +174,32 @@ Vue.component('product', {
     template: `
             <div class="product">
                 <div class="product-image">
-                    <img :src="image" :alt="altText"/>
+                    <img :src="image" :alt="altText"/> // Динамическое изображение продукта
                 </div>
                 <div class="product-info">
-                    <h1>{{ title }}</h1>
-                    <p>{{ description }}</p>
-                    <a :href="link">More products like this</a>
-                    <p v-if="inStock">In stock</p>
+                    <h1>{{ title }}</h1> // Название продукта
+                    <p>{{ description }}</p> // Описание продукта
+                    <a :href="link">More products like this</a> // Ссылка на другие продукты
+                    <p v-if="inStock">In stock</p> // Проверка наличия товара
                     <p v-else style="text-decoration: line-through">Out of Stock</p>
-                    <span v-if="onSale"> On Sale </span <br><br>
-                    <p>{{ sale }}</p>
+                    <span v-if="onSale"> On Sale </span <br><br> // Статус распродажи
+                    <p>{{ sale }}</p> // Сообщение о распродаже
                     <div
                         class="color-box"
-                        v-for="(variant, index) in variants"
+                        v-for="(variant, index) in variants" // Перебираем варианты продукта
                         :key="variant.variantId"
-                        :style="{ backgroundColor: variant.variantColor }"
-                        @mouseover="updateProduct(index)"
+                        :style="{ backgroundColor: variant.variantColor }" // Динамический цвет варианта
+                        @mouseover="updateProduct(index)" // Обновляем выбранный вариант при наведении
                     ></div>
                     <h2>Available Sizes:</h2>
                     <ul>
-                        <li v-for="size in sizes" :key="size">{{ size }}</li>
+                        <li v-for="size in sizes" :key="size">{{ size }}</li> // Перебираем доступные размеры
                     </ul>
-                    <button @click="addToCart" :disabled="!inStock" :class="{ disabledButton: !inStock }">Add to cart</button>
-                    <button @click="removeFromCart">Remove from cart</button>
+                    <button @click="addToCart" :disabled="!inStock" :class="{ disabledButton: !inStock }">Add to cart</button> // Кнопка добавления в корзину
+                    <button @click="removeFromCart">Remove from cart</button> // Кнопка удаления из корзины
                 </div>
                 <div>
-                    <product-tabs :reviews="reviews" :shipping-cost="shipping" :details="details"></product-tabs>
+                    <product-tabs :reviews="reviews" :shipping-cost="shipping" :details="details"></product-tabs> // Вкладки с информацией о продукте
                 </div>
             </div>
             `,
@@ -268,7 +253,7 @@ Vue.component('product', {
     },
     mounted() {
         // Подписываемся на событие 'review-submitted' для добавления отзыва
-        eventBus.$on('review-submitted', this.addReview);
+        eventBus.$on('review-submitted ', this.addReview);
     },
     beforeDestroy() {
         // Отписываемся от события перед уничтожением компонента
@@ -311,8 +296,10 @@ let app = new Vue({
             this.cart.push(id);
         },
         updateRemoveFromCart() {
-            // Удаляем последний добавленный товар из корзины if (this.cart.length > 0) {
-            this.cart.pop();
+            // Удаляем последний добавленный товар из корзины
+            if (this.cart.length > 0) {
+                this.cart.pop();
+            }
         }
-    },
+    }
 });
