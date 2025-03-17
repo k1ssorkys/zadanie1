@@ -1,64 +1,3 @@
-Vue.component('product-review', {
-    template: `
-<input v-model="name">
-<form class="review-form" @submit.prevent="onSubmit">
- <p>
-   <label for="name">Name:</label>
-   <input id="name" v-model="name" placeholder="name">
- </p>
-
- <p>
-   <label for="review">Review:</label>
-   <textarea id="review" v-model="review"></textarea>
- </p>
-
- <p>
-   <label for="rating">Rating:</label>
-   <select id="rating" v-model.number="rating">
-     <option>5</option>
-     <option>4</option>
-     <option>3</option>
-     <option>2</option>
-     <option>1</option>
-   </select>
- </p>
-
- <p>
-   <input type="submit" value="Submit"> 
- </p>
-
-</form>
-
-
- `,
-    data() {
-        return {
-            name: null,
-            review: null,
-            rating: null
-        }
-    },
-    methods:{
-        onSubmit() {
-            let productReview = {
-                name: this.name,
-                review: this.review,
-                rating: this.rating
-            }
-            this.$emit('review-submitted', productReview)
-            this.name = null
-            this.review = null
-            this.rating = null
-        },
-
-
-
-    }
-
-
-
-})
-
 Vue.component('product-detail', {
     props: {
         details: {
@@ -80,9 +19,7 @@ Vue.component('product', {
         premium: {
             type: Boolean,
             required: true
-        },
-        reviews: []
-
+        }
     },
 
     template: `
@@ -111,25 +48,13 @@ Vue.component('product', {
                 </div>
                 <li v-for="size in sizes">{{size}}</li>
                 <div class="cart">
-                    
+                    <p>Cart({{ cart }})</p>
                     <button v-on:click="addToCart"  :class="{ disabledButton: !inStock }">Add to cart</button>
                     <button v-on:click="ubratOnCart">Ubrat from cart</button>
                 </div>
                 <span>{{ sale }}</span>
                 <p>Shipping: {{ shipping }}</p>
-                 <product-review @review-submitted="addReview"></product-review>
-                 <div>
-<h2>Reviews</h2>
-<p v-if="!reviews.length">There are no reviews yet.</p>
-<ul>
-  <li v-for="review in reviews">
-  <p>{{ review.name }}</p>
-  <p>Rating: {{ review.rating }}</p>
-  <p>{{ review.review }}</p>
-  </li>
-</ul>
-</div>
-
+                       
             </div>
         </div>`
     ,
@@ -159,29 +84,26 @@ Vue.component('product', {
                 }
             ],
             sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
-
+            cart: 0,
         }
     },
 
     methods: {
         addToCart() {
-            this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
-
+            this.cart += 1
         },
-
-
         updateProduct(index) {
             this.selectedVariant = index;
 
         },
 
         ubratOnCart() {
-            this.$emit('del-to-cart', this.variants[this.selectedVariant].variantId);
+            if (this.cart > 0) {
+                this.cart -= 1;
+            } else {
+                alert("Бро, корзина и так пуста куда минусуешь");
+            }
         },
-        addReview(productReview) {
-            this.reviews.push(productReview)
-        }
-
     },
     computed: {
         title() {
@@ -214,19 +136,7 @@ let app = new Vue({
     el: '#app',
     data: {
         premium: true,
-        cart: [],
-        review: []
-
-    },
-    methods: {
-        updateCart(id) {
-            this.cart.push(id);
-        },
-        delCart(id) {
-            this.cart.pop(id);
-        },
 
     }
-
 
 })
