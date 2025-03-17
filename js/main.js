@@ -1,65 +1,152 @@
-Vue.component('product-review', {
-    template: `
-<input v-model="name">
-<form class="review-form" @submit.prevent="onSubmit">
- <p>
-   <label for="name">Name:</label>
-   <input id="name" v-model="name" placeholder="name">
- </p>
+// Создаем экземпляр Vue, который будет использоваться как шина событий для обмена данными между компонентами
+let eventBus = new Vue();
 
- <p>
-   <label for="review">Review:</label>
-   <textarea id="review" v-model="review"></textarea>
- </p>
-
- <p>
-   <label for="rating">Rating:</label>
-   <select id="rating" v-model.number="rating">
-     <option>5</option>
-     <option>4</option>
-     <option>3</option>
-     <option>2</option>
-     <option>1</option>
-   </select>
- </p>
-
- <p>
-   <input type="submit" value="Submit"> 
- </p>
-
-</form>
-
-
- `,
-    data() {
-        return {
-            name: null,
-            review: null,
-            rating: null
+// Компонент для отображения вкладок с информацией о продукте
+Vue.component('product-tabs', {
+    props: {
+        reviews: { // Пропс для отзывов о продукте
+            type: Array,
+            required: false
+        },
+        shippingCost: { // Пропс для стоимости доставки
+            type: String,
+            required: true
+        },
+        details: { // Пропс для деталей продукта
+            type: Array,
+            required: true
         }
     },
-    methods:{
-        onSubmit() {
-            let productReview = {
-                name: this.name,
-                review: this.review,
-                rating: this.rating
-            }
-            this.$emit('review-submitted', productReview)
-            this.name = null
-            this.review = null
-            this.rating = null
-        },
-
-
-
+    template: `
+            <div>   
+                <ul>
+                    <span class="tab"
+                          :class="{ activeTab: selectedTab === tab }"
+                          v-for="(tab, index) in tabs"
+                          @click="selectedTab = tab"
+                    >{{ tab }}</span>
+                </ul>
+                <div v-show="selectedTab === 'Reviews'">
+                    <p v-if="!reviews.length">There are no reviews yet.</p>
+                    <ul>
+                        <li v-for="review in reviews" :key="review.name">
+                            <p>{{ review.name }}</p>
+                            <p>Rating: {{ review.rating }}</p>
+                            <p>{{ review.review }}</p>
+                            <p>Recommended: {{ review.recommendation }}</p>
+                        </li>
+                    </ul>
+                </div>
+                <div v-show="selectedTab === 'Make a Review'">
+                    <product-review></product-review>
+                </div>
+                <div v-show="selectedTab === 'Shipping'">
+                    <p>Shipping Cost: {{ shippingCost }}</p>
+                </div>
+                <div v-show="selectedTab === 'Details'">
+                    <h2>Details:</h2>
+                    <ul>
+                        <li v-for="detail in details" :key="detail">{{ detail }}</li>
+                    </ul>
+                </div>
+            </div>
+            `,
+    data() {
+        return {
+            tabs: ['Reviews', 'Make a Review', 'Shipping', 'Details'], // Названия вкладок
+            selectedTab: 'Reviews' // Вкладка по умолчанию
+        }
     }
+});
 
+// Компонент для формы отзыва о продукте
+Vue.component('product-review', {
+    template: `
+            <form class="review-form" @submit.prevent="onSubmit">
+                <p v-if="errors.length">
+                    <b>Please correct the following error(s):</b>
+                    <ul>
+                        <li v-for="error in errors" :key="error">{{ error }}</li>
+                    </ul>
+                </p>
+                <p>
+                    <label for="name">Name:</label>
+                    <input id="name" v-model="name" placeholder="name">
+                </p>
+                <p>
+                    <label for="review">Review:</label>
+                    <textarea id="review" v-model="review"></textarea>
+                </p>
+                <p>
+                    <label for="rating">Rating:</label>
+                    <select id="rating" v-model.number="rating">
+                        <option disabled value="">Please select one</option>
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        <option>4</option>
+                        <option>5</option>
+                    </select>
+                </p>
+                <p>
+                    <label>Would you recommend this product?</label>
+                    <label>
+                        <input type="radio" value="yes" v-model="recommendation"> Yes
+                    </label>
+                    <label>
+                        <input type="radio" value="no" v-model="recommendation"> No
+                    </label>
+                </p>
+                <p>
+                    <input type="submit" value="Submit"> 
+                </p>
+            </form>
+            `,
+    data() {
+        return {
+            name: '', // Имя пользователя
+            review: '', // Текст отзыва
+            rating: null, // Рейтинг
+            recommendation: '', // Рекомендация
+            errors: [] // Ошибки валидации
+        }
+    },
+    methods: {
+        onSubmit() {
+            this.errors = []; // Сбрасываем ошибки
+            // Проверяем, заполнены ли все поля
+            if (this.name && this.review && this.rating && this.recommendation) {
+                const productReview = {
+                    name: this.name,
+                    review: this.review,
+                    rating: this.rating,
+                    recommendation: this.recommendation
+                };
+                // Отправляем отзыв через event bus
+                eventBus.$emit('review-submitted', productReview);
+                this.resetForm(); // Сбрасываем форму
+            } else {
+                // Добавляем ошибки валидации
+                this.errors.push(...[
+                    !this.name && "Name required.",
+                    !this.review && "Review required.",
+                    !this.rating && "Rating required.",
+                    !this.recommendation && "Recommendation required."
+                ].filter(Boolean));
+            }
+        },
+        resetForm() {
+            // Сбрасываем поля формы
+            this.name = '';
+            this.review = '';
+            this.rating = null;
+            this.recommendation = '';
+        }
+    }
+});
 
-
-})
-
-Vue.component('product-detail', {
+// Компонент для отображения деталей продукта
+Vue.component('product-details', {
     props: {
         details: {
             type: Array,
@@ -67,84 +154,68 @@ Vue.component('product-detail', {
         }
     },
     template: `
-    <ul>
-        <li v-for="detail in details">{{ detail }}</li>
-    </ul>
-    `,
+            <div>
+                <h2>Details:</h2>
+                <ul>
+                    <li v-for="detail in details" :key="detail">{{ detail }}</li>
+                </ul>
+            </div>
+            `
+});
 
-})
-
-
+// Основной компонент продукта
 Vue.component('product', {
     props: {
         premium: {
             type: Boolean,
             required: true
-        },
-        reviews: []
-
+        }
     },
-
     template: `
-   <div class="product">
-            <div class="product-image">
-              <img alt="#" :src="image" :alt="altText"/>
-            </div>
-            <div class="product-info">
-                <h1>{{ title }}</h1>
-                <p>{{description}}</p>
-                <product-detail :details="details"> </product-detail>
-
-                <a href="https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks">{{link}}</a>
-                <p v-if="inStock">In Stock</p>
-                <p v-else :class="{ line: !inStock }" >Out of Stock</p>
-                <span v-if="onSale">On Sale</span>
-                <div
-                     class="color-box"
-                     v-for="(variant, index) in variants"
-                     :key="variant.variantId"
-                     :style="{ backgroundColor:variant.variantColor }"
-                     @mouseover="updateProduct(index)">
-
-
-
+            <div class="product">
+                <div class="product-image">
+                    <img :src="image" :alt="altText"/>
                 </div>
-                <li v-for="size in sizes">{{size}}</li>
-                <div class="cart">
-                    
-                    <button v-on:click="addToCart"  :class="{ disabledButton: !inStock }">Add to cart</button>
-                    <button v-on:click="ubratOnCart">Ubrat from cart</button>
+                <div class="product-info">
+                    <h1>{{ title }}</h1>
+                    <p>{{ description }}</p>
+                    <a :href="link">More products like this</a>
+                    <p v-if="inStock">In stock</p>
+                    <p v-else style="text-decoration: line-through">Out of Stock</p>
+                    <span v-if="onSale"> On Sale </span <br><br>
+                    <p>{{ sale }}</p>
+                    <div
+                        class="color-box"
+                        v-for="(variant, index) in variants"
+                        :key="variant.variantId"
+                        :style="{ backgroundColor: variant.variantColor }"
+                        @mouseover="updateProduct(index)"
+                    ></div>
+                    <h2>Available Sizes:</h2>
+                    <ul>
+                        <li v-for="size in sizes" :key="size">{{ size }}</li>
+                    </ul>
+                    <button @click="addToCart" :disabled="!inStock" :class="{ disabledButton: !inStock }">Add to cart</button>
+                    <button @click="removeFromCart">Remove from cart</button>
                 </div>
-                <span>{{ sale }}</span>
-                <p>Shipping: {{ shipping }}</p>
-                 <product-review @review-submitted="addReview"></product-review>
-                 <div>
-<h2>Reviews</h2>
-<p v-if="!reviews.length">There are no reviews yet.</p>
-<ul>
-  <li v-for="review in reviews">
-  <p>{{ review.name }}</p>
-  <p>Rating: {{ review.rating }}</p>
-  <p>{{ review.review }}</p>
-  </li>
-</ul>
-</div>
-
+                <div>
+                    <product-tabs :reviews="reviews" :shipping-cost="shipping" :details="details"></product-tabs>
+                </div>
             </div>
-        </div>`
-    ,
+            `,
     data() {
         return {
-            product: "Socks",
-            brand: 'Vue Mastery',
-            description: "A pair of warm, fuzzy socks",
-            details: ['80% cotton', '20% polyester', 'Gender-neutral'],
-            selectedVariant: 0,
-            altText: "A pair of socks",
-            link: "More products like this",
-            onSale: true,
-
-            variants: [
+            reviews: [], // Массив для хранения отзывов
+            product: "Socks", // Название продукта
+            brand: 'Vue Mastery', // Бренд продукта
+            description: "A pair of warm, fuzzy socks", // Описание продукта
+            altText: "A pair of socks", // Альтернативный текст для изображения
+            inventory: 100, // Общее количество товара на складе
+            selectedVariant: 0, // Выбранный вариант продукта
+            link: 'https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks', // Ссылка на другие продукты
+            onSale: true, // Статус распродажи
+            details: ['80% cotton', '20% polyester', 'Gender-neutral'], // Детали продукта
+            variants: [ // Варианты продукта
                 {
                     variantId: 2234,
                     variantColor: 'green',
@@ -158,75 +229,75 @@ Vue.component('product', {
                     variantQuantity: 0
                 }
             ],
-            sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
-
+            sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'], // Доступные размеры
+            cart: [] // Корзина для хранения добавленных товаров
         }
     },
-
     methods: {
         addToCart() {
+            // Добавляем товар в корзину
             this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
-
         },
-
-
+        removeFromCart() {
+            // Удаляем товар из корзины
+            this.$emit('remove-from-cart');
+        },
         updateProduct(index) {
+            // Обновляем выбранный вариант продукта
             this.selectedVariant = index;
-
-        },
-
-        ubratOnCart() {
-            this.$emit('del-to-cart', this.variants[this.selectedVariant].variantId);
         },
         addReview(productReview) {
-            this.reviews.push(productReview)
+            // Добавляем отзыв о продукте
+            this.reviews.push(productReview);
         }
-
+    },
+    mounted() {
+        // Подписываемся на событие 'review-submitted' для добавления отзыва
+        eventBus.$on('review-submitted', this.addReview);
+    },
+    beforeDestroy() {
+        // Отписываемся от события перед уничтожением компонента
+        eventBus.$off('review-submitted', this.addReview);
     },
     computed: {
         title() {
+            // Возвращаем полное название продукта
             return this.brand + ' ' + this.product;
         },
-        sale() {
-            return this.onSale ? `${this.brand} ${this.product} is on sale!` : `${this.brand} ${this.product} is not on sale.`;
-        },
         image() {
+            // Возвращаем изображение выбранного варианта
             return this.variants[this.selectedVariant].variantImage;
         },
         inStock() {
-            return this.variants[this.selectedVariant].variantQuantity
+            // Проверяем, есть ли товар в наличии
+            return this.variants[this.selectedVariant].variantQuantity > 0;
+        },
+        sale() {
+            // Возвращаем статус распродажи
+            return this.onSale ? `${this.brand} ${this.product} is on sale!` : `${this.brand} ${this.product} is not on sale.`;
         },
         shipping() {
-            if (this.premium) {
-                return "Free";
-            } else {
-                return 2.99
-            }
-        },
+            // Возвращаем стоимость доставки в зависимости от статуса премиум-клиента
+            return this.premium ? "Free" : "2.99";
+        }
+    }
+});
 
-
-    },
-})
-
-
+// Основной экземпляр Vue приложения
 let app = new Vue({
-
-    el: '#app',
+    el: '#app', // Привязываем приложение к элементу с id 'app'
     data: {
-        premium: true,
-        cart: [],
-        review: []
-
+        premium: true, // Статус премиум-клиента
+        cart: [] // Корзина для хранения добавленных товаров
     },
     methods: {
         updateCart(id) {
+            // Добавляем товар в корзину
             this.cart.push(id);
         },
-        delCart(id) {
-            this.cart.pop(id);
-        },
-
-    }
-
-
-})
+        updateRemoveFromCart() {
+            // Удаляем последний добавленный товар из корзины if (this.cart.length > 0) {
+            this.cart.pop();
+        }
+    },
+});
