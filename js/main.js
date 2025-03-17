@@ -199,8 +199,6 @@ Vue.component('product', {
                     <p v-else style="text-decoration: line-through">Out of Stock</p>
                     <span v-if="onSale"> On Sale </span <br><br>
                     <p>{{ sale }}</p>
-                    <p>Materials: {{ material }}</p> 
-<p>Price: {{ price }}</p>
                     <div
                         class="color-box"
                         v-for="(variant, index) in variants"
@@ -222,7 +220,6 @@ Vue.component('product', {
             `,
     data() {
         return {
-
             reviews: [], // Массив для хранения отзывов
             product: "Socks", // Название продукта
             brand: 'Vue Mastery', // Бренд продукта
@@ -233,29 +230,18 @@ Vue.component('product', {
             link: 'https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks', // Ссылка на другие продукты
             onSale: true, // Статус распродажи
             details: ['80% cotton', '20% polyester', 'Gender-neutral'], // Детали продукта
-            variants: [
+            variants: [ // Варианты продукта
                 {
                     variantId: 2234,
                     variantColor: 'green',
                     variantImage: "./assets/vmSocks-green-onWhite.jpg",
-                    variantQuantity: 10 ,
-                    basePrice: 25,
-                    materials: [
-                        { name: 'Cotton', coefficient: 0.5 },
-                        { name: 'Polyester', coefficient: 0.5 }
-                    ]
+                    variantQuantity: 10
                 },
                 {
                     variantId: 2235,
                     variantColor: 'blue',
                     variantImage: "./assets/vmSocks-blue-onWhite.jpg",
-                    variantQuantity: 10,
-                    basePrice: 19,
-                    materials: [
-                        { name: 'wool', coefficient: 0.4 },
-                        { name: 'neilon', coefficient: 0.2 },
-                        { name: 'barashek', coefficient: 0.4 }
-                    ]
+                    variantQuantity: 0
                 }
             ],
             sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'], // Доступные размеры
@@ -278,8 +264,7 @@ Vue.component('product', {
         addReview(productReview) {
             // Добавляем отзыв о продукте
             this.reviews.push(productReview);
-        },
-
+        }
     },
     mounted() {
         // Подписываемся на событие 'review-submitted' для добавления отзыва
@@ -309,16 +294,7 @@ Vue.component('product', {
         shipping() {
             // Возвращаем стоимость доставки в зависимости от статуса премиум-клиента
             return this.premium ? "Free" : "2.99";
-        },
-        material() {
-            return this.variants[this.selectedVariant].materials.map(material => material.name).join(' , ');
-            //Метод map() в JavaScript применяется для создания нового массива на основе исходного массива, применяя к каждому элементу функцию обратного вызова и возвращая результаты в новый массив.
-        },
-        price() {
-            const basePrice = this.variants[this.selectedVariant].basePrice;
-            const totalCoefficient = this.variants[this.selectedVariant].materials.reduce((total, material) => total + material.coefficient, 1);
-            return (basePrice * totalCoefficient).toFixed(2);
-        },
+        }
     }
 });
 
